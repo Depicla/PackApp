@@ -1,16 +1,16 @@
 {
-  "name": "PackApp Valigie",
-  "short_name": "PackApp",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#007aff",
-  "theme_color": "#007aff",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+"name": "PackApp Valigie",
+"short_name": "PackApp",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#007aff",
+"theme_color": "#007aff",
+"icons": [
+{
+"src": "icon.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any maskable"
+}
+]
 }

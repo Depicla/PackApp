@@ -1,11 +1,9 @@
-const CACHE_NAME = 'packapp-v1';
+const CACHE_NAME = 'packapp-v2';
 const urlsToCache = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
   './manifest.json',
-  './icon.svg'
+  './icon.png'
 ];
 
 self.addEventListener('install', event => {
