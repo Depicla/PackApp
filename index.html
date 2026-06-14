@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PackApp</title>
+  
+  <!-- PWA Links -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#007aff">
+  
+  <!-- Nuovo Font: Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* VARIABILI COLORI E TEMI STILE IOS/MODERNO */
+    :root {
+      --bg: #f4f4f9;
+      --surface: #ffffff;
+      --text: #1d1d1f;
+      --text-muted: #86868b;
+      --primary: #007aff;
+      --primary-hover: #0066d6;
+      --danger: #ff3b30;
+      --border: #e5e5ea;
+      --shadow: 0 4px 14px rgba(0,0,0,0.06);
+      --card-radius: 16px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --text: #f5f5f7;
+      --text-muted: #a1a1a6;
+      --primary: #0a84ff;
+      --primary-hover: #007aff;
+      --danger: #ff453a;
+      --border: #38383a;
+      --shadow: 0 4px 14px rgba(0,0,0,0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; padding-bottom: 90px; transition: background-color 0.3s, color 0.3s; }
+
+    header { 
+      background-color: var(--surface); 
+      padding: 18px 20px; 
+      text-align: center; 
+      border-bottom: 1px solid var(--border); 
+      position: sticky; 
+      top: 0; 
+      z-index: 10; 
+      box-shadow: var(--shadow);
+    }
+    
+    header h1 { font-weight: 800; font-size: 22px; color: var(--primary); letter-spacing: 0.5px; }
+    main { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+    .view { display: none; animation: fadeIn 0.3s ease; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { font-size: 24px; font-weight: 800; margin-bottom: 15px; color: var(--text); }
+    h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; margin-top: 15px; }
+
+    .card { background: var(--surface); padding: 20px; border-radius: var(--card-radius); margin-bottom: 20px; box-shadow: var(--shadow); }
+
+    /* PULSANTI */
+    .btn { padding: 14px 20px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn:active { transform: scale(0.97); }
+    .btn.primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3); }
+    .btn.danger { background: var(--danger); color: white; }
+    .btn.outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn.outline.small { padding: 8px 12px; font-size: 13px; border-radius: 8px; border-width: 1px; }
+    .btn.danger.outline { border-color: var(--danger); color: var(--danger); }
+    .btn.block { width: 100%; display: block; margin-bottom: 12px; }
+
+    /* INPUTS */
+    input[type="text"] { 
+      width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); 
+      background: var(--surface); color: var(--text); font-size: 16px; outline: none; transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--primary); }
+
+    /* GRIGLIA HOME */
+    .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+    .grid-buttons button { 
+      padding: 25px 15px; font-size: 18px; border-radius: var(--card-radius); 
+      background: var(--surface); color: var(--text); border: 1px solid var(--border); 
+      font-weight: 700; box-shadow: var(--shadow); transition: all 0.2s;
+    }
+    .grid-buttons button:active { background: var(--primary); color: white; }
+
+    /* AGGIUNTA RAPIDA / LISTE */
+    .flex-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .flex-row input { flex: 1; }
+
+    .checklist, .inventory-list { list-style: none; }
+    .checklist li, .inventory-list li { 
+      background: var(--surface); padding: 16px; border-bottom: 1px solid var(--border); 
+      display: flex; align-items: center; gap: 15px; font-size: 18px; font-weight: 600;
+    }
+    .checklist li:first-child, .inventory-list li:first-child { border-top-left-radius: var(--card-radius); border-top-right-radius: var(--card-radius); }
+    .checklist li:last-child, .inventory-list li:last-child { border-bottom: none; border-bottom-left-radius: var(--card-radius); border-bottom-right-radius: var(--card-radius); }
+    
+    .checklist input[type="checkbox"] { width: 26px; height: 26px; accent-color: var(--primary); transform: scale(1.1); }
+    .checklist.done li { color: var(--text-muted); text-decoration: line-through; }
+
+    /* INVENTARIO */
+    .inventory-list li { flex-direction: row; justify-content: space-between; }
+    .item-info { display: flex; flex-direction: column; }
+    .tags { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+    .del-btn { background: var(--bg); color: var(--danger); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+    /* CHECKBOX CATEGORIE (INVENTARIO) */
+    .category-checkboxes { width: 100%; display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
+    .category-checkboxes label { 
+      display: flex; align-items: center; gap: 8px; background: var(--surface); 
+      padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); font-size: 14px; font-weight: 600;
+    }
+    .category-checkboxes input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; }
+
+    /* NAVIGAZIONE INFERIORE */
+    .bottom-nav { 
+      position: fixed; bottom: 0; width: 100%; background: var(--surface); 
+      border-top: 1px solid var(--border); display: flex; justify-content: space-around; 
+      padding: 15px 0 25px 0; box-shadow: 0 -4px 14px rgba(0,0,0,0.05); z-index: 100;
+    }
+    .nav-btn { 
+      background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700;
+      display: flex; flex-direction: column; align-items: center; gap: 6px; width: 25%; cursor: pointer; transition: color 0.2s;
+    }
+    .nav-btn .icon { font-size: 22px; }
+    .nav-btn.active { color: var(--primary); }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="header-title">PackApp</h1>
+  </header>
+
+  <main>
+    <!-- SEZIONE 1: SCELTA LISTA (HOME) -->
+    <section id="view-home" class="view active">
+      <h2>Scegli la destinazione</h2>
+      
+      <div id="active-list-alert" style="display: none;" class="card">
+        <h3 style="margin-top:0; color:var(--primary);">Lista in corso!</h3>
+        <p style="margin-bottom: 15px;">Hai una lista <strong><span id="alert-category-name"></span></strong> ancora aperta.</p>
+        <button onclick="switchView('view-list')" class="btn primary block">Riprendi Lista</button>
+      </div>
+
+      <div id="category-buttons" class="grid-buttons"></div>
+      
+      <div class="card">
+        <h3>Crea nuova destinazione</h3>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Aggiungi un nuovo tipo di viaggio (es. Campeggio, Weekend).</p>
+        <div class="flex-row">
+          <input type="text" id="new-category-input" placeholder="Nome nuova lista...">
+          <button onclick="addNewCategory()" class="btn primary">Aggiungi</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEZIONE 2: LISTA ATTIVA -->
+    <section id="view-list" class="view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 id="list-title" style="margin:0;">Lista</h2>
+        <button onclick="closeList()" class="btn danger outline small">Chiudi Lista</button>
+      </div>
+      
+      <div class="flex-row">
+        <input type="text" id="quick-add-input" placeholder="Aggiungi articolo mancante...">
+        <button onclick="quickAdd()" class="btn primary">+</button>
+      </div>
+
+      <div class="card" style="padding:0; background:transparent; box-shadow:none;">
+        <h3 style="padding-left:10px;">Da preparare</h3>
+        <ul id="todo-list" class="checklist"></ul>
+      </div>
+
+      <div class="card" style="padding:0; background:transparent; box-shadow:none;">
+        <h3 style="padding-left:10px; color: var(--text-muted);">Già in valigia</h3>
+        <ul id="done-list" class="checklist done"></ul>
+      </div>
+    </section>
+
+    <!-- SEZIONE 3: INVENTARIO (Oggetti totali) -->
+    <section id="view-inventory" class="view">
+      <h2>Inventario Generale</h2>
+      <p style="font-size: 0.95em; color:var(--text-muted); margin-bottom: 20px;">Aggiungi gli oggetti al database e decidi in quali liste devono comparire automaticamente.</p>
+      
+      <div class="card">
+        <h3>Nuovo Articolo</h3>
+        <input type="text" id="inv-new-name" placeholder="Es. Ombrellone, Passaporto...">
+        
+        <h3 style="font-size: 15px; margin-top:20px;">Associalo a queste liste:</h3>
+        <div style="display: flex; gap:10px; margin-top: 10px;">
+          <button class="btn outline small" onclick="toggleAllCategories(true)">Seleziona tutte</button>
+          <button class="btn outline small" onclick="toggleAllCategories(false)">Deseleziona tutte</button>
+        </div>
+        
+        <div id="inv-new-categories" class="category-checkboxes"></div>
+        
+        <button onclick="addInventoryItem()" class="btn primary block" style="margin-top: 15px;">Salva nell'inventario</button>
+      </div>
+
+      <h3 style="margin-top:30px; margin-bottom:10px;">Tutti gli articoli salvati</h3>
+      <div class="card" style="padding:0; background:transparent; box-shadow:none;">
+        <ul id="inventory-list" class="inventory-list"></ul>
+      </div>
+    </section>
+
+    <!-- SEZIONE 4: IMPOSTAZIONI -->
+    <section id="view-settings" class="view">
+      <h2>Opzioni</h2>
+      
+      <div class="card">
+        <h3>Aspetto App</h3>
+        <button onclick="toggleTheme()" class="btn outline block">Cambia Tema (Chiaro / Scuro)</button>
+      </div>
+
+      <div class="card">
+        <h3>Gestione Destinazioni</h3>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Rimuovi le liste che non ti servono più.</p>
+        <ul id="settings-categories-list" class="inventory-list" style="margin-bottom:10px;"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Backup Dati</h3>
+        <p style="font-size:14px; margin-bottom: 15px;">Ultimo backup: <strong id="last-backup-date">Mai</strong></p>
+        <button onclick="exportBackup()" class="btn primary block">Scarica Backup</button>
+        
+        <hr style="border:0; border-top: 1px solid var(--border); margin: 20px 0;">
+        
+        <h3>Ripristina Dati</h3>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Carica un file per sovrascrivere l'app.</p>
+        <input type="file" id="import-file" accept=".json" style="margin-bottom: 15px; width:100%;">
+        <button onclick="importBackup()" class="btn danger block">Carica Backup</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- BARRA DI NAVIGAZIONE -->
+  <nav class="bottom-nav">
+    <button onclick="switchView('view-home')" class="nav-btn active" id="nav-home">
+      <span class="icon">🏠</span><span>Home</span>
+    </button>
+    <button onclick="switchView('view-list')" class="nav-btn" id="nav-list" style="display:none;">
+      <span class="icon">📝</span><span>Lista</span>
+    </button>
+    <button onclick="switchView('view-inventory')" class="nav-btn" id="nav-inventory">
+      <span class="icon">📦</span><span>Inventario</span>
+    </button>
+    <button onclick="switchView('view-settings')" class="nav-btn" id="nav-settings">
+      <span class="icon">⚙️</span><span>Opzioni</span>
+    </button>
+  </nav>
+
+  <script>
+    // DATI E STATO INIZIALE
+    let categories = JSON.parse(localStorage.getItem('categories')) || ['Mare', 'Montagna', 'Crociera', 'Lavoro'];
+    let inventory = JSON.parse(localStorage.getItem('inventory')) || [
+      { id: 1, name: 'Mutande', categories: ['Mare', 'Montagna', 'Crociera', 'Lavoro'] },
+      { id: 2, name: 'Spazzolino', categories: ['Mare', 'Montagna', 'Crociera', 'Lavoro'] },
+      { id: 3, name: 'Caricabatterie', categories: ['Mare', 'Montagna', 'Crociera', 'Lavoro'] },
+      { id: 4, name: 'Ombrellone', categories: ['Mare'] }
+    ];
+    let activeList = JSON.parse(localStorage.getItem('activeList')) || null;
+    let lastBackup = localStorage.getItem('lastBackup') || 'Mai';
+    let theme = localStorage.getItem('theme') || 'light';
+
+    // INIT APP
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('last-backup-date').textContent = lastBackup;
+    
+    // Primo Render
+    refreshAllUI();
+
+    function refreshAllUI() {
+      renderCategories();
+      renderInventory();
+      renderSettingsCategories();
+      checkActiveList();
+    }
+
+    // NAVIGAZIONE
+    function switchView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      if(viewId === 'view-home') document.getElementById('nav-home').classList.add('active');
+      if(viewId === 'view-list') document.getElementById('nav-list').classList.add('active');
+      if(viewId === 'view-inventory') document.getElementById('nav-inventory').classList.add('active');
+      if(viewId === 'view-settings') document.getElementById('nav-settings').classList.add('active');
+    }
+
+    // GESTIONE CATEGORIE (HOME E SETTINGS)
+    function renderCategories() {
+      const container = document.getElementById('category-buttons');
+      const checkboxContainer = document.getElementById('inv-new-categories');
+      container.innerHTML = '';
+      checkboxContainer.innerHTML = '';
+
+      categories.forEach(cat => {
+        // Bottoni Home
+        const btn = document.createElement('button');
+        btn.textContent = cat;
+        btn.onclick = () => startList(cat);
+        container.appendChild(btn);
+
+        // Checkbox Inventario
+        const lbl = document.createElement('label');
+        lbl.innerHTML = `<input type="checkbox" value="${cat}"> ${cat}`;
+        checkboxContainer.appendChild(lbl);
+      });
+    }
+
+    function renderSettingsCategories() {
+      const ul = document.getElementById('settings-categories-list');
+      ul.innerHTML = '';
+      categories.forEach(cat => {
+        const li = document.createElement('li');
+        li.style.padding = '10px 15px';
+        li.innerHTML = `
+          <span>${cat}</span>
+          <button class="del-btn" onclick="deleteCategory('${cat}')">Elimina</button>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function addNewCategory() {
+      const input = document.getElementById('new-category-input');
+      const name = input.value.trim();
+      if (!name) return;
+      if (categories.includes(name)) {
+        alert("Questa categoria esiste già!");
+        return;
+      }
+      categories.push(name);
+      input.value = '';
+      saveData();
+      refreshAllUI();
+    }
+
+    function deleteCategory(catName) {
+      if(confirm(`Sei sicuro di voler eliminare la lista "${catName}"? Verrà rimossa anche da tutti gli articoli dell'inventario.`)) {
+        categories = categories.filter(c => c !== catName);
+        // Rimuovi la categoria anche dagli item dell'inventario
+        inventory.forEach(item => {
+          item.categories = item.categories.filter(c => c !== catName);
+        });
+        saveData();
+        refreshAllUI();
+      }
+    }
+
+    // LISTA ATTIVA
+    function checkActiveList() {
+      const navListBtn = document.getElementById('nav-list');
+      const alertBox = document.getElementById('active-list-alert');
+      
+      if (activeList) {
+        navListBtn.style.display = 'flex';
+        alertBox.style.display = 'block';
+        document.getElementById('alert-category-name').textContent = activeList.category;
+        document.getElementById('list-title').textContent = "Valigia: " + activeList.category;
+        renderActiveList();
+      } else {
+        navListBtn.style.display = 'none';
+        alertBox.style.display = 'none';
+      }
+    }
+
+    function startList(category) {
+      if (!activeList || confirm('Hai già una lista aperta. Vuoi chiuderla e aprirne una nuova per: ' + category + '?')) {
+        const itemsForCategory = inventory.filter(i => i.categories.includes(category));
+        activeList = {
+          category: category,
+          items: itemsForCategory.map(i => ({ id: i.id, name: i.name, checked: false }))
+        };
+        saveData();
+        checkActiveList();
+        switchView('view-list');
+      }
+    }
+
+    function renderActiveList() {
+      if (!activeList) return;
+      const todoUl = document.getElementById('todo-list');
+      const doneUl = document.getElementById('done-list');
+      todoUl.innerHTML = ''; doneUl.innerHTML = '';
+
+      activeList.items.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${item.id})">
+          <span>${item.name}</span>
+        `;
+        if (item.checked) doneUl.appendChild(li);
+        else todoUl.appendChild(li);
+      });
+    }
+
+    function toggleCheck(id) {
+      const item = activeList.items.find(i => i.id === id);
+      item.checked = !item.checked;
+      saveData();
+      renderActiveList();
+    }
+
+    function closeList() {
+      if (confirm('Sei sicuro di voler chiudere la lista? I progressi verranno azzerati.')) {
+        activeList = null;
+        saveData();
+        checkActiveList();
+        switchView('view-home');
+      }
+    }
+
+    function quickAdd() {
+      const input = document.getElementById('quick-add-input');
+      const name = input.value.trim();
+      if (!name) return;
+      const newId = Date.now();
+      
+      activeList.items.push({ id: newId, name: name, checked: false });
+      // Lo salva anche nell'inventario generale per il futuro
+      inventory.push({ id: newId, name: name, categories: [activeList.category] });
+
+      input.value = '';
+      saveData();
+      renderActiveList();
+      renderInventory();
+    }
+
+    // INVENTARIO
+    function toggleAllCategories(selectAll) {
+      const checkboxes = document.querySelectorAll('#inv-new-categories input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = selectAll);
+    }
+
+    function renderInventory() {
+      const ul = document.getElementById('inventory-list');
+      ul.innerHTML = '';
+      inventory.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="item-info">
+            <span>${item.name}</span>
+            <span class="tags">${item.categories.length > 0 ? item.categories.join(', ') : 'Nessuna lista'}</span>
+          </div>
+          <button class="del-btn" onclick="deleteInventoryItem(${item.id})">X</button>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function addInventoryItem() {
+      const input = document.getElementById('inv-new-name');
+      const checkboxes = document.querySelectorAll('#inv-new-categories input:checked');
+      const name = input.value.trim();
+      
+      if (!name) {
+        alert("Inserisci il nome dell'articolo!");
+        return;
+      }
+
+      const selectedCats = Array.from(checkboxes).map(cb => cb.value);
+      inventory.push({ id: Date.now(), name: name, categories: selectedCats });
+      
+      input.value = '';
+      toggleAllCategories(false); // resetta i checkbox
+      
+      saveData();
+      renderInventory();
+    }
+
+    function deleteInventoryItem(id) {
+      if(confirm("Eliminare definitivamente dall'inventario generale?")) {
+        inventory = inventory.filter(i => i.id !== id);
+        saveData();
+        renderInventory();
+      }
+    }
+
+    // IMPOSTAZIONI E SALVATAGGIO
+    function toggleTheme() {
+      theme = theme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      saveData();
+    }
+
+    function saveData() {
+      localStorage.setItem('categories', JSON.stringify(categories));
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+      localStorage.setItem('activeList', JSON.stringify(activeList));
+      localStorage.setItem('theme', theme);
+    }
+
+    // BACKUP
+    function exportBackup() {
+      const data = { categories, inventory, activeList, theme };
+      const dataStr = JSON.stringify(data);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toLocaleString('it-IT');
+      a.download = `PackApp_Backup_${dateStr.replace(/[\/, :]/g, '_')}.json`;
+      a.click();
+
+      lastBackup = dateStr;
+      localStorage.setItem('lastBackup', lastBackup);
+      document.getElementById('last-backup-date').textContent = lastBackup;
+    }
+
+    function importBackup() {
+      const fileInput = document.getElementById('import-file');
+      if (!fileInput.files.length) {
+        alert("Seleziona prima un file di backup JSON!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.categories) categories = data.categories;
+          if (data.inventory) inventory = data.inventory;
+          if (data.activeList !== undefined) activeList = data.activeList;
+          if (data.theme) theme = data.theme;
+          
+          saveData();
+          alert("Backup ripristinato con successo! L'app si aggiornerà.");
+          location.reload();
+        } catch (err) {
+          alert("File non valido o corrotto.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup failed', err));
+    }
+  </script>
+</body>
+</html>
